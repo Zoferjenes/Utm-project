@@ -1,0 +1,30 @@
+# Keep the repo clean: do not copy course exports, chat archives, screenshots, or scan dumps here.
+
+_scan_unpacked/
+elearning 8idf2903fr8r2/
+telegram group cpad 89e13heh9/
+files data grup wa grup arcade only/
+files data grup wa grup cpad barengan si arcade + top gs/
+Course_*.html
+*_chat.txt
+codex-clipboard-*
+*-PHOTO-*
+*-VIDEO-*
+
+# Archive/document dumps from e-learning/chat exports.
+*.zip
+*.pdf
+*.pptx
+*.docx
+*.mp4
+*.mov
+
+# Local/private build artifacts.
+.env
+.env.*
+!.env.example
+node_modules/
+vendor/
+dist/
+build/
+coverage/

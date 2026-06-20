@@ -1,0 +1,9 @@
+{
+  "appId": "my.utm.arcade.fixit",
+  "appName": "Arcade FixIt",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}
+

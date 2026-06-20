@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Sara cleaner profile">
+  <rect width="128" height="128" rx="18" fill="#fff7ed"/>
+  <circle cx="64" cy="48" r="24" fill="#d97706"/>
+  <path d="M25 113c5-25 20-39 39-39s34 14 39 39" fill="#7c2d12"/>
+  <path d="M35 89h58v18H35z" fill="#0f766e"/>
+  <circle cx="43" cy="29" r="6" fill="#fbbf24"/>
+  <circle cx="91" cy="31" r="5" fill="#fbbf24"/>
+  <circle cx="82" cy="21" r="4" fill="#fbbf24"/>
+</svg>
