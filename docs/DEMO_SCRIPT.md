@@ -15,26 +15,30 @@ FixIt connects customers with verified local providers through a cross-platform 
 1. Login as `customer@fixit.test` / `password`.
 2. Open Services.
 3. Browse service categories and verified providers.
-4. Create a booking/job request.
-5. Open Bookings and show the job status.
-6. After provider completion, confirm the final cost and submit a review.
+4. Filter by category, location/search text, and max rate.
+5. Create a booking/job request.
+6. Open Bookings and show the job status timeline.
+7. Send a job message to the provider.
+8. After provider completion, confirm the final cost and submit a review.
 
 ### Provider Flow
 
 1. Login as `provider@fixit.test` / `password`.
 2. Open Bookings.
 3. Accept or update a customer job status.
-4. Save the final job cost.
-5. Open Provider Profile and update profile/category/KYC reference.
-6. Show provider dashboard statistics.
+4. Open job activity and reply to the customer message.
+5. Save the final job cost.
+6. Open Provider Profile and update profile/category/KYC reference.
+7. Show provider dashboard statistics.
 
 ### Admin Flow
 
 1. Login as `admin@fixit.test` / `password`.
 2. Open Admin.
-3. Verify pending provider.
-4. Add a service category.
-5. Show all jobs from the admin account.
+3. Show Rejve-inspired admin portal sidebar and real overview cards from `/admin/overview`.
+4. Verify pending providers such as `John Doe Plumbing Ltd` or `Sarah Quick Sparks`.
+5. Add, edit, or deactivate a service category from the CRUD panel.
+6. Show all jobs from the admin account.
 
 ## 4. Technical Points To Mention
 
@@ -47,6 +51,9 @@ FixIt connects customers with verified local providers through a cross-platform 
 - PDO prepared statements protect against SQL injection.
 - Frontend and backend both validate inputs.
 - Provider KYC upload accepts only PDF/JPG/PNG and limits file size.
+- Job messages and status timeline are scoped by role, so unrelated users cannot inspect another job.
+- Admin category management uses real API-backed create, update, and soft-delete actions.
+- Admin dashboard cards, provider verification table, and category CRUD panel integrate Rejve's frontend mock into the real Vue/Slim/MySQL app.
 
 ## 5. Production/Mobile Proof
 

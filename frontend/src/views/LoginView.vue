@@ -10,6 +10,16 @@ const email = ref('customer@fixit.test');
 const password = ref('password');
 const error = ref('');
 const busy = ref(false);
+const presets = [
+  { label: 'Customer', email: 'customer@fixit.test' },
+  { label: 'Provider', email: 'provider@fixit.test' },
+  { label: 'Admin', email: 'admin@fixit.test' },
+];
+
+function usePreset(preset) {
+  email.value = preset.email;
+  password.value = 'password';
+}
 
 async function submit() {
   error.value = '';
@@ -26,31 +36,41 @@ async function submit() {
 </script>
 
 <template>
-  <div class="auth-page">
-    <div class="card auth-card">
-      <h1>Arcade FixIt</h1>
-      <p class="muted">Local home services marketplace for customer, provider, and admin workflows.</p>
+  <div class="auth-page secure-login">
+    <div class="card auth-card login-card">
+      <div class="login-brand">
+        <span class="brand-mark">F</span>
+        <div>
+          <h1>FixIt Secure Login</h1>
+          <p class="muted">Please sign in to your dashboard.</p>
+        </div>
+      </div>
 
       <p v-if="error" class="alert error">{{ error }}</p>
 
-      <label>Email</label>
-      <input v-model="email" type="email" autocomplete="email" />
+      <form @submit.prevent="submit">
+        <label>Email Address</label>
+        <input v-model="email" type="email" autocomplete="email" placeholder="admin@fixit.test" />
 
-      <label>Password</label>
-      <input v-model="password" type="password" autocomplete="current-password" />
+        <label>Password</label>
+        <input v-model="password" type="password" autocomplete="current-password" placeholder="password" />
 
-      <p><button :disabled="busy" @click="submit">{{ busy ? 'Signing in...' : 'Sign in' }}</button></p>
+        <p><button class="login-btn" :disabled="busy" type="submit">{{ busy ? 'Signing in...' : 'Secure Login' }}</button></p>
+      </form>
 
-      <p class="muted">
-        Demo:
-        customer@fixit.test,
-        provider@fixit.test,
-        admin@fixit.test
-        / password
-      </p>
+      <div class="demo-presets" aria-label="Demo accounts">
+        <button
+          v-for="preset in presets"
+          :key="preset.email"
+          class="secondary compact"
+          type="button"
+          @click="usePreset(preset)"
+        >
+          {{ preset.label }}
+        </button>
+      </div>
 
       <RouterLink to="/register">Create a test account</RouterLink>
     </div>
   </div>
 </template>
-

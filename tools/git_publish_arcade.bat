@@ -3,6 +3,8 @@ setlocal EnableDelayedExpansion
 
 set "GIT_USER_NAME=exant9"
 set "GIT_USER_EMAIL=fcfgts@gmail.com"
+set "COMMIT_MESSAGE=Integrate Rejve admin frontend work"
+set "COMMIT_BODY=Applied Rejve's Member 1 web interface contribution into the real Vue/Slim/MySQL project: admin portal layout, dashboard cards, provider verification table, category CRUD flow, secure-login polish, and seed data examples while keeping raw chat/e-learning exports out of the repo."
 set "NEEDS_FORCE_PUSH=0"
 
 cd /d "%~dp0\.."
@@ -56,7 +58,7 @@ if errorlevel 1 goto fail
 git rev-parse --verify HEAD >nul 2>&1
 if errorlevel 1 (
   echo Creating first commit...
-  git commit -m "Build Arcade FixIt MVP"
+  git commit -m "%COMMIT_MESSAGE%" -m "%COMMIT_BODY%"
   if errorlevel 1 (
     echo.
     echo Commit failed. If Git asks for identity, run:
@@ -76,7 +78,7 @@ if errorlevel 1 (
     git diff --cached --quiet
     if errorlevel 1 (
       echo Creating commit...
-      git commit -m "Build Arcade FixIt MVP"
+      git commit -m "%COMMIT_MESSAGE%" -m "%COMMIT_BODY%"
       if errorlevel 1 goto fail
     ) else (
       echo No staged changes to commit.

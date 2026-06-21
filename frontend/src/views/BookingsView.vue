@@ -9,6 +9,10 @@ const categories = ref([]);
 const providers = ref([]);
 const finalCosts = ref({});
 const reviews = ref({});
+const timelines = ref({});
+const messages = ref({});
+const messageDrafts = ref({});
+const expandedJobs = ref({});
 const error = ref('');
 const ok = ref('');
 const form = ref({
@@ -39,6 +43,9 @@ async function load() {
       if (!reviews.value[job.id]) {
         reviews.value[job.id] = { rating: 5, comment: '' };
       }
+      if (messageDrafts.value[job.id] === undefined) {
+        messageDrafts.value[job.id] = '';
+      }
     });
     categories.value = categoryRes.data.data;
     providers.value = providerRes.data.data;
@@ -58,6 +65,26 @@ async function createJob() {
     await load();
   } catch (e) {
     error.value = e.response?.data?.error || e.message;
+  }
+}
+
+async function loadJobActivity(job) {
+  const [timelineRes, messageRes] = await Promise.all([
+    api.get(`/jobs/${job.id}/timeline`),
+    api.get(`/jobs/${job.id}/messages`),
+  ]);
+  timelines.value[job.id] = timelineRes.data.data;
+  messages.value[job.id] = messageRes.data.data;
+}
+
+async function toggleDetails(job) {
+  expandedJobs.value[job.id] = !expandedJobs.value[job.id];
+  if (expandedJobs.value[job.id]) {
+    try {
+      await loadJobActivity(job);
+    } catch (e) {
+      error.value = e.response?.data?.error || e.message;
+    }
   }
 }
 
@@ -104,6 +131,22 @@ async function submitReview(job) {
     await api.post('/reviews', { job_id: job.id, ...reviews.value[job.id] });
     ok.value = `Review submitted for job #${job.id}`;
     await load();
+  } catch (e) {
+    error.value = e.response?.data?.error || e.message;
+  }
+}
+
+async function sendMessage(job) {
+  const body = (messageDrafts.value[job.id] || '').trim();
+  if (!body) return;
+
+  ok.value = '';
+  error.value = '';
+  try {
+    await api.post(`/jobs/${job.id}/messages`, { body });
+    messageDrafts.value[job.id] = '';
+    ok.value = `Message sent for job #${job.id}`;
+    await loadJobActivity(job);
   } catch (e) {
     error.value = e.response?.data?.error || e.message;
   }
@@ -172,6 +215,44 @@ onMounted(load);
               <label>Comment</label>
               <textarea v-model="reviews[job.id].comment" placeholder="Short review"></textarea>
               <button class="secondary" @click="submitReview(job)">Submit Review</button>
+            </div>
+            <div class="row activity-actions">
+              <button class="secondary" @click="toggleDetails(job)">
+                {{ expandedJobs[job.id] ? 'Hide Activity' : 'View Activity' }}
+              </button>
+            </div>
+            <div v-if="expandedJobs[job.id]" class="activity-panel">
+              <div>
+                <h3>Status Timeline</h3>
+                <div class="timeline">
+                  <article v-for="event in timelines[job.id] || []" :key="event.id" class="timeline-item">
+                    <strong>{{ event.status }}</strong>
+                    <span class="muted">{{ event.changed_by_name }} | {{ event.changed_at }}</span>
+                  </article>
+                  <p v-if="!(timelines[job.id] || []).length" class="muted">No timeline records yet.</p>
+                </div>
+              </div>
+
+              <div>
+                <h3>Job Messages</h3>
+                <div class="message-list">
+                  <article
+                    v-for="message in messages[job.id] || []"
+                    :key="message.id"
+                    class="message-item"
+                    :class="{ mine: Number(message.sender_id) === Number(auth.user?.id) }"
+                  >
+                    <strong>{{ message.sender_name }}</strong>
+                    <p>{{ message.body }}</p>
+                    <span class="muted">{{ message.sender_role }} | {{ message.sent_at }}</span>
+                  </article>
+                  <p v-if="!(messages[job.id] || []).length" class="muted">No messages yet.</p>
+                </div>
+                <div class="message-form">
+                  <textarea v-model="messageDrafts[job.id]" maxlength="500" placeholder="Send update about this job"></textarea>
+                  <button class="secondary" @click="sendMessage(job)">Send Message</button>
+                </div>
+              </div>
             </div>
           </article>
         </div>

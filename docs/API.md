@@ -78,6 +78,26 @@ Admin only.
 }
 ```
 
+### Update Category
+
+Admin only.
+
+`PATCH /admin/categories/{id}`
+
+```json
+{
+  "name": "Painting",
+  "description": "Wall painting and small touch-up jobs",
+  "icon": "paint"
+}
+```
+
+### Deactivate Category
+
+Admin only. This soft-deactivates the category so existing job history remains intact.
+
+`DELETE /admin/categories/{id}`
+
 ## Providers
 
 ### Browse Providers
@@ -87,7 +107,7 @@ Admin only.
 Optional query:
 
 ```text
-?category_id=1&q=skudai
+?category_id=1&q=skudai&max_rate=60
 ```
 
 ### Provider Detail
@@ -174,6 +194,30 @@ Allowed statuses:
 requested, accepted, rejected, in_progress, completed, reviewed
 ```
 
+### Job Timeline
+
+Customer/provider/admin, scoped to jobs they can access.
+
+`GET /jobs/{id}/timeline`
+
+Response includes status changes and who made them.
+
+### Job Messages
+
+Customer/provider/admin, scoped to jobs they can access.
+
+`GET /jobs/{id}/messages`
+
+`POST /jobs/{id}/messages`
+
+```json
+{
+  "body": "I am on the way and will update the final cost after inspection."
+}
+```
+
+Messages are limited to 500 characters.
+
 ### Set Final Cost
 
 Provider/admin only.
@@ -207,6 +251,32 @@ Customer only.
 ```
 
 ## Admin
+
+### Admin Overview
+
+`GET /admin/overview`
+
+Returns real dashboard data for the admin portal:
+
+```json
+{
+  "data": {
+    "counts": {
+      "total_users": 7,
+      "total_providers": 5,
+      "verified_providers": 2,
+      "pending_providers": 3,
+      "active_jobs": 1,
+      "completed_jobs": 1,
+      "active_categories": 6
+    },
+    "status_breakdown": [
+      { "status": "accepted", "total": 1 }
+    ],
+    "latest_jobs": []
+  }
+}
+```
 
 ### Provider Verification Queue
 

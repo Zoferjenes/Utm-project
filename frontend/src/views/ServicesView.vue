@@ -6,6 +6,7 @@ const categories = ref([]);
 const providers = ref([]);
 const q = ref('');
 const selectedCategory = ref('');
+const maxRate = ref('');
 const error = ref('');
 
 async function load() {
@@ -17,6 +18,7 @@ async function load() {
         params: {
           q: q.value || undefined,
           category_id: selectedCategory.value || undefined,
+          max_rate: maxRate.value || undefined,
         },
       }),
     ]);
@@ -57,6 +59,10 @@ onMounted(load);
             </option>
           </select>
         </div>
+        <div>
+          <label>Max Rate</label>
+          <input v-model.number="maxRate" type="number" min="0" placeholder="60" @keyup.enter="load" />
+        </div>
       </div>
       <p><button class="secondary" @click="load">Apply Filters</button></p>
     </div>
@@ -85,6 +91,7 @@ onMounted(load);
         <div class="row">
           <span class="badge">RM{{ provider.base_rate }}</span>
           <span class="badge warning">{{ provider.rating_avg || 0 }} rating</span>
+          <RouterLink to="/bookings"><button class="secondary compact">Book</button></RouterLink>
         </div>
       </article>
     </div>

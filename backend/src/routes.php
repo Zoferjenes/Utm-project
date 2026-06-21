@@ -77,7 +77,7 @@ $app->get('/auth/me', function (Request $request, Response $response) use ($pdo)
 })->add($auth);
 
 $app->get('/categories', function () use ($pdo) {
-    $stmt = $pdo->query('SELECT * FROM service_categories ORDER BY name');
+    $stmt = $pdo->query('SELECT * FROM service_categories WHERE is_active = 1 ORDER BY name');
     return json_response(['data' => $stmt->fetchAll()]);
 });
 
@@ -106,6 +106,45 @@ $app->post('/admin/categories', function (Request $request) use ($pdo) {
     return json_response(['status' => 'success', 'id' => (int)$pdo->lastInsertId()], 201);
 })->add($auth);
 
+$app->patch('/admin/categories/{id:[0-9]+}', function (Request $request, Response $response, array $args) use ($pdo) {
+    $auth = (array)$request->getAttribute('auth');
+    if ($fail = require_role($auth, ['admin'])) {
+        return $fail;
+    }
+
+    $body = body_array($request);
+    $errors = require_fields($body, ['name']);
+    if ($errors) {
+        return json_response(['errors' => $errors], 400);
+    }
+
+    $stmt = $pdo->prepare('
+        UPDATE service_categories
+        SET name = :name, description = :description, icon = :icon, is_active = 1
+        WHERE id = :id
+    ');
+    $stmt->execute([
+        ':id' => (int)$args['id'],
+        ':name' => trim($body['name']),
+        ':description' => trim((string)($body['description'] ?? '')),
+        ':icon' => trim((string)($body['icon'] ?? 'tool')),
+    ]);
+
+    return json_response(['status' => 'success']);
+})->add($auth);
+
+$app->delete('/admin/categories/{id:[0-9]+}', function (Request $request, Response $response, array $args) use ($pdo) {
+    $auth = (array)$request->getAttribute('auth');
+    if ($fail = require_role($auth, ['admin'])) {
+        return $fail;
+    }
+
+    $stmt = $pdo->prepare('UPDATE service_categories SET is_active = 0 WHERE id = :id');
+    $stmt->execute([':id' => (int)$args['id']]);
+
+    return json_response(['status' => 'success']);
+})->add($auth);
+
 $app->get('/providers', function (Request $request) use ($pdo) {
     $params = $request->getQueryParams();
     $where = ['pp.is_verified = 1'];
@@ -119,6 +158,11 @@ $app->get('/providers', function (Request $request) use ($pdo) {
     if (!empty($params['q'])) {
         $where[] = '(u.name LIKE :q OR pp.location LIKE :q OR sc.name LIKE :q)';
         $bind[':q'] = '%' . trim($params['q']) . '%';
+    }
+
+    if (isset($params['max_rate']) && (float)$params['max_rate'] > 0) {
+        $where[] = 'pp.base_rate <= :max_rate';
+        $bind[':max_rate'] = (float)$params['max_rate'];
     }
 
     $sql = '
@@ -310,6 +354,33 @@ $app->post('/providers/kyc', function (Request $request) use ($pdo) {
     return json_response(['status' => 'success', 'kyc_doc_url' => $path], 201);
 })->add($auth);
 
+$loadAccessibleJob = function (array $auth, int $jobId) use ($pdo): ?array {
+    $role = $auth['role'] ?? '';
+    $bind = [':id' => $jobId];
+    $where = 'j.id = :id';
+
+    if ($role === 'customer') {
+        $where .= ' AND j.customer_id = :user_id';
+        $bind[':user_id'] = (int)$auth['sub'];
+    } elseif ($role === 'provider') {
+        $where .= ' AND pp.user_id = :user_id';
+        $bind[':user_id'] = (int)$auth['sub'];
+    } elseif ($role !== 'admin') {
+        return null;
+    }
+
+    $stmt = $pdo->prepare("
+        SELECT j.id
+        FROM jobs j
+        JOIN provider_profiles pp ON pp.id = j.provider_id
+        WHERE {$where}
+    ");
+    $stmt->execute($bind);
+    $job = $stmt->fetch();
+
+    return $job ?: null;
+};
+
 $app->get('/jobs', function (Request $request) use ($pdo) {
     $auth = (array)$request->getAttribute('auth');
     $role = $auth['role'] ?? '';
@@ -373,6 +444,84 @@ $app->post('/jobs', function (Request $request) use ($pdo) {
     ]);
 
     return json_response(['status' => 'success', 'job_id' => (int)$pdo->lastInsertId()], 201);
+})->add($auth);
+
+$app->get('/jobs/{id:[0-9]+}/timeline', function (Request $request, Response $response, array $args) use ($pdo, $loadAccessibleJob) {
+    $auth = (array)$request->getAttribute('auth');
+    $jobId = (int)$args['id'];
+
+    if (!$loadAccessibleJob($auth, $jobId)) {
+        return json_response(['error' => 'Job not found or not allowed'], 404);
+    }
+
+    $stmt = $pdo->prepare('
+        SELECT
+            l.id,
+            l.status,
+            l.changed_at,
+            u.name AS changed_by_name,
+            u.role AS changed_by_role
+        FROM job_status_logs l
+        JOIN users u ON u.id = l.changed_by
+        WHERE l.job_id = :job_id
+        ORDER BY l.changed_at ASC, l.id ASC
+    ');
+    $stmt->execute([':job_id' => $jobId]);
+
+    return json_response(['data' => $stmt->fetchAll()]);
+})->add($auth);
+
+$app->get('/jobs/{id:[0-9]+}/messages', function (Request $request, Response $response, array $args) use ($pdo, $loadAccessibleJob) {
+    $auth = (array)$request->getAttribute('auth');
+    $jobId = (int)$args['id'];
+
+    if (!$loadAccessibleJob($auth, $jobId)) {
+        return json_response(['error' => 'Job not found or not allowed'], 404);
+    }
+
+    $stmt = $pdo->prepare('
+        SELECT
+            m.id,
+            m.body,
+            m.sent_at,
+            u.id AS sender_id,
+            u.name AS sender_name,
+            u.role AS sender_role
+        FROM messages m
+        JOIN users u ON u.id = m.sender_id
+        WHERE m.job_id = :job_id
+        ORDER BY m.sent_at ASC, m.id ASC
+    ');
+    $stmt->execute([':job_id' => $jobId]);
+
+    return json_response(['data' => $stmt->fetchAll()]);
+})->add($auth);
+
+$app->post('/jobs/{id:[0-9]+}/messages', function (Request $request, Response $response, array $args) use ($pdo, $loadAccessibleJob) {
+    $auth = (array)$request->getAttribute('auth');
+    $jobId = (int)$args['id'];
+
+    if (!$loadAccessibleJob($auth, $jobId)) {
+        return json_response(['error' => 'Job not found or not allowed'], 404);
+    }
+
+    $body = body_array($request);
+    $message = trim((string)($body['body'] ?? ''));
+    if ($message === '') {
+        return json_response(['errors' => ['body' => 'body is required']], 400);
+    }
+    if (strlen($message) > 500) {
+        return json_response(['errors' => ['body' => 'Message must be 500 characters or fewer']], 400);
+    }
+
+    $stmt = $pdo->prepare('INSERT INTO messages (job_id, sender_id, body) VALUES (:job_id, :sender_id, :body)');
+    $stmt->execute([
+        ':job_id' => $jobId,
+        ':sender_id' => (int)$auth['sub'],
+        ':body' => $message,
+    ]);
+
+    return json_response(['status' => 'success', 'message_id' => (int)$pdo->lastInsertId()], 201);
 })->add($auth);
 
 $app->patch('/jobs/{id}/status', function (Request $request, Response $response, array $args) use ($pdo) {
@@ -532,6 +681,64 @@ $app->post('/reviews', function (Request $request) use ($pdo) {
     return json_response(['status' => 'success'], 201);
 })->add($auth);
 
+$app->get('/admin/overview', function (Request $request) use ($pdo) {
+    $auth = (array)$request->getAttribute('auth');
+    if ($fail = require_role($auth, ['admin'])) {
+        return $fail;
+    }
+
+    $countQueries = [
+        'total_users' => 'SELECT COUNT(*) FROM users',
+        'total_providers' => 'SELECT COUNT(*) FROM provider_profiles',
+        'verified_providers' => 'SELECT COUNT(*) FROM provider_profiles WHERE is_verified = 1',
+        'pending_providers' => 'SELECT COUNT(*) FROM provider_profiles WHERE is_verified = 0',
+        'active_jobs' => 'SELECT COUNT(*) FROM jobs WHERE status NOT IN ("completed", "reviewed", "rejected")',
+        'completed_jobs' => 'SELECT COUNT(*) FROM jobs WHERE status IN ("completed", "reviewed")',
+        'active_categories' => 'SELECT COUNT(*) FROM service_categories WHERE is_active = 1',
+    ];
+
+    $counts = [];
+    foreach ($countQueries as $key => $sql) {
+        $counts[$key] = (int)$pdo->query($sql)->fetchColumn();
+    }
+
+    $stmt = $pdo->query('
+        SELECT status, COUNT(*) AS total
+        FROM jobs
+        GROUP BY status
+        ORDER BY status
+    ');
+    $statusBreakdown = $stmt->fetchAll();
+
+    $stmt = $pdo->query('
+        SELECT
+            j.id,
+            j.status,
+            j.total,
+            j.final_cost,
+            j.created_at,
+            c.name AS customer_name,
+            pu.name AS provider_name,
+            sc.name AS category_name
+        FROM jobs j
+        JOIN users c ON c.id = j.customer_id
+        JOIN provider_profiles pp ON pp.id = j.provider_id
+        JOIN users pu ON pu.id = pp.user_id
+        JOIN service_categories sc ON sc.id = j.category_id
+        ORDER BY j.created_at DESC
+        LIMIT 6
+    ');
+    $latestJobs = $stmt->fetchAll();
+
+    return json_response([
+        'data' => [
+            'counts' => $counts,
+            'status_breakdown' => $statusBreakdown,
+            'latest_jobs' => $latestJobs,
+        ],
+    ]);
+})->add($auth);
+
 $app->get('/admin/providers/pending', function (Request $request) use ($pdo) {
     $auth = (array)$request->getAttribute('auth');
     if ($fail = require_role($auth, ['admin'])) {
@@ -539,9 +746,29 @@ $app->get('/admin/providers/pending', function (Request $request) use ($pdo) {
     }
 
     $stmt = $pdo->query('
-        SELECT pp.*, u.name, u.email, u.phone
+        SELECT
+            pp.*,
+            u.name,
+            u.email,
+            u.phone,
+            GROUP_CONCAT(DISTINCT sc.name ORDER BY sc.name SEPARATOR ", ") AS categories
         FROM provider_profiles pp
         JOIN users u ON u.id = pp.user_id
+        LEFT JOIN provider_categories pc ON pc.provider_id = pp.id
+        LEFT JOIN service_categories sc ON sc.id = pc.category_id
+        GROUP BY
+            pp.id,
+            pp.user_id,
+            pp.bio,
+            pp.location,
+            pp.base_rate,
+            pp.photo_url,
+            pp.is_verified,
+            pp.kyc_doc_url,
+            pp.created_at,
+            u.name,
+            u.email,
+            u.phone
         ORDER BY pp.is_verified ASC, pp.created_at DESC
     ');
 
