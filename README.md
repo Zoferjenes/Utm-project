@@ -99,7 +99,7 @@ http://localhost:5173
 
 ## Required Demo Flow
 
-1. Login as customer and browse service categories/providers.
+1. Login as customer and browse service categories/providers with category, rate, and distance filters.
 2. Create a booking/job request.
 3. Use the job timeline/messages to show customer-provider communication.
 4. Login as provider, update profile, accept/update the job, reply to messages, and set final cost.

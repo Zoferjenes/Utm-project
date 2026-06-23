@@ -148,7 +148,10 @@ $app->delete('/admin/categories/{id:[0-9]+}', function (Request $request, Respon
 $app->get('/providers', function (Request $request) use ($pdo) {
     $params = $request->getQueryParams();
     $where = ['pp.is_verified = 1'];
+    $having = [];
     $bind = [];
+    $distanceSelect = 'NULL AS distance_km';
+    $orderBy = 'rating_avg DESC, u.name ASC';
 
     if (!empty($params['category_id'])) {
         $where[] = 'pc.category_id = :category_id';
@@ -165,6 +168,39 @@ $app->get('/providers', function (Request $request) use ($pdo) {
         $bind[':max_rate'] = (float)$params['max_rate'];
     }
 
+    if (isset($params['lat'], $params['lng']) && is_numeric($params['lat']) && is_numeric($params['lng'])) {
+        $lat = (float)$params['lat'];
+        $lng = (float)$params['lng'];
+
+        if ($lat >= -90 && $lat <= 90 && $lng >= -180 && $lng <= 180) {
+            $where[] = 'pp.latitude IS NOT NULL AND pp.longitude IS NOT NULL';
+            $distanceSelect = '
+                ROUND(
+                    6371 * ACOS(
+                        LEAST(1, GREATEST(-1,
+                            COS(RADIANS(:lat_a)) *
+                            COS(RADIANS(pp.latitude)) *
+                            COS(RADIANS(pp.longitude) - RADIANS(:lng)) +
+                            SIN(RADIANS(:lat_b)) *
+                            SIN(RADIANS(pp.latitude))
+                        ))
+                    ),
+                    2
+                ) AS distance_km';
+            $bind[':lat_a'] = $lat;
+            $bind[':lat_b'] = $lat;
+            $bind[':lng'] = $lng;
+            $orderBy = 'distance_km ASC, rating_avg DESC, u.name ASC';
+
+            if (isset($params['max_distance_km']) && (float)$params['max_distance_km'] > 0) {
+                $having[] = 'distance_km <= :max_distance_km';
+                $bind[':max_distance_km'] = (float)$params['max_distance_km'];
+            }
+        }
+    }
+
+    $havingSql = $having ? "\n        HAVING " . implode(' AND ', $having) : '';
+
     $sql = '
         SELECT
             pp.id AS provider_id,
@@ -172,9 +208,13 @@ $app->get('/providers', function (Request $request) use ($pdo) {
             u.phone,
             pp.bio,
             pp.location,
+            pp.latitude,
+            pp.longitude,
+            pp.service_radius_km,
             pp.base_rate,
             pp.photo_url,
             pp.is_verified,
+            ' . $distanceSelect . ',
             COALESCE(ROUND(AVG(r.rating), 1), 0) AS rating_avg,
             GROUP_CONCAT(DISTINCT sc.name ORDER BY sc.name SEPARATOR ", ") AS categories
         FROM provider_profiles pp
@@ -184,8 +224,11 @@ $app->get('/providers', function (Request $request) use ($pdo) {
         LEFT JOIN jobs j ON j.provider_id = pp.id
         LEFT JOIN reviews r ON r.job_id = j.id
         WHERE ' . implode(' AND ', $where) . '
-        GROUP BY pp.id, u.name, u.phone, pp.bio, pp.location, pp.base_rate, pp.photo_url, pp.is_verified
-        ORDER BY rating_avg DESC, u.name ASC';
+        GROUP BY
+            pp.id, u.name, u.phone, pp.bio, pp.location, pp.latitude, pp.longitude,
+            pp.service_radius_km, pp.base_rate, pp.photo_url, pp.is_verified
+        ' . $havingSql . '
+        ORDER BY ' . $orderBy;
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($bind);
@@ -252,6 +295,15 @@ $app->post('/providers/profile', function (Request $request) use ($pdo) {
 
     $body = body_array($request);
     $errors = require_fields($body, ['bio', 'location', 'base_rate']);
+    if (isset($body['latitude']) && $body['latitude'] !== '' && (!is_numeric($body['latitude']) || (float)$body['latitude'] < -90 || (float)$body['latitude'] > 90)) {
+        $errors['latitude'] = 'Latitude must be between -90 and 90';
+    }
+    if (isset($body['longitude']) && $body['longitude'] !== '' && (!is_numeric($body['longitude']) || (float)$body['longitude'] < -180 || (float)$body['longitude'] > 180)) {
+        $errors['longitude'] = 'Longitude must be between -180 and 180';
+    }
+    if (isset($body['service_radius_km']) && $body['service_radius_km'] !== '' && (!is_numeric($body['service_radius_km']) || (float)$body['service_radius_km'] <= 0)) {
+        $errors['service_radius_km'] = 'Service radius must be greater than zero';
+    }
     if ($errors) {
         return json_response(['errors' => $errors], 400);
     }
@@ -259,11 +311,16 @@ $app->post('/providers/profile', function (Request $request) use ($pdo) {
     $pdo->beginTransaction();
     try {
         $stmt = $pdo->prepare('
-            INSERT INTO provider_profiles (user_id, bio, location, base_rate, photo_url, kyc_doc_url)
-            VALUES (:user_id, :bio, :location, :base_rate, :photo_url, :kyc_doc_url)
+            INSERT INTO provider_profiles
+                (user_id, bio, location, latitude, longitude, service_radius_km, base_rate, photo_url, kyc_doc_url)
+            VALUES
+                (:user_id, :bio, :location, :latitude, :longitude, :service_radius_km, :base_rate, :photo_url, :kyc_doc_url)
             ON DUPLICATE KEY UPDATE
                 bio = VALUES(bio),
                 location = VALUES(location),
+                latitude = VALUES(latitude),
+                longitude = VALUES(longitude),
+                service_radius_km = VALUES(service_radius_km),
                 base_rate = VALUES(base_rate),
                 photo_url = VALUES(photo_url),
                 kyc_doc_url = VALUES(kyc_doc_url)
@@ -272,6 +329,11 @@ $app->post('/providers/profile', function (Request $request) use ($pdo) {
             ':user_id' => (int)$auth['sub'],
             ':bio' => trim($body['bio']),
             ':location' => trim($body['location']),
+            ':latitude' => isset($body['latitude']) && $body['latitude'] !== '' ? (float)$body['latitude'] : null,
+            ':longitude' => isset($body['longitude']) && $body['longitude'] !== '' ? (float)$body['longitude'] : null,
+            ':service_radius_km' => isset($body['service_radius_km']) && (float)$body['service_radius_km'] > 0
+                ? (float)$body['service_radius_km']
+                : 10.00,
             ':base_rate' => (float)$body['base_rate'],
             ':photo_url' => trim((string)($body['photo_url'] ?? '/provider-ali.svg')),
             ':kyc_doc_url' => trim((string)($body['kyc_doc_url'] ?? 'mock-kyc.pdf')),

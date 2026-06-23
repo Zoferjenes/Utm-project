@@ -17,12 +17,14 @@ INSERT INTO service_categories (name, description, icon) VALUES
 ('AC Service', 'AC cleaning, gas top-up, filter service, cooling diagnostics.', 'snowflake'),
 ('Carpentry Work', 'Door repair, shelf installation, furniture fixes, and small woodwork jobs.', 'hammer');
 
-INSERT INTO provider_profiles (user_id, bio, location, base_rate, photo_url, is_verified, kyc_doc_url) VALUES
-(3, 'Experienced plumber for student apartments and small household repairs.', 'Taman Universiti, Skudai', 50.00, '/provider-ali.svg', 1, 'mock-kyc/ali-plumber.pdf'),
-(4, 'Cleaner specializing in weekly room cleaning and move-out deep cleaning.', 'Kangkar Pulai, Johor', 40.00, '/provider-sara.svg', 1, 'mock-kyc/sara-cleaner.pdf'),
-(5, 'Electrical technician for fans, sockets, lights, and small rewiring work.', 'Mutiara Rini, Johor', 60.00, '/provider-omar.svg', 0, 'mock-kyc/omar-electrician.pdf'),
-(6, 'Pending provider from Rejve admin mock, focused on plumbing and repair requests.', 'Johor Bahru City Centre', 55.00, '/provider-ali.svg', 0, 'mock-kyc/john-doe-plumbing.pdf'),
-(7, 'Pending provider from Rejve admin mock, focused on quick electrical service calls.', 'Skudai, Johor', 65.00, '/provider-omar.svg', 0, 'mock-kyc/sarah-quick-sparks.pdf');
+INSERT INTO provider_profiles
+  (user_id, bio, location, latitude, longitude, service_radius_km, base_rate, photo_url, is_verified, kyc_doc_url)
+VALUES
+(3, 'Experienced plumber for student apartments and small household repairs.', 'Taman Universiti, Skudai', 1.5339000, 103.6299000, 8.00, 50.00, '/provider-ali.svg', 1, 'mock-kyc/ali-plumber.pdf'),
+(4, 'Cleaner specializing in weekly room cleaning and move-out deep cleaning.', 'Kangkar Pulai, Johor', 1.5448000, 103.5847000, 12.00, 40.00, '/provider-sara.svg', 1, 'mock-kyc/sara-cleaner.pdf'),
+(5, 'Electrical technician for fans, sockets, lights, and small rewiring work.', 'Mutiara Rini, Johor', 1.5155000, 103.6395000, 10.00, 60.00, '/provider-omar.svg', 0, 'mock-kyc/omar-electrician.pdf'),
+(6, 'Pending provider from Rejve admin mock, focused on plumbing and repair requests.', 'Johor Bahru City Centre', 1.4629000, 103.7637000, 15.00, 55.00, '/provider-ali.svg', 0, 'mock-kyc/john-doe-plumbing.pdf'),
+(7, 'Pending provider from Rejve admin mock, focused on quick electrical service calls.', 'Skudai, Johor', 1.5372000, 103.6603000, 10.00, 65.00, '/provider-omar.svg', 0, 'mock-kyc/sarah-quick-sparks.pdf');
 
 INSERT INTO provider_categories (provider_id, category_id) VALUES
 (1, 1),

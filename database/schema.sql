@@ -38,11 +38,15 @@ CREATE TABLE provider_profiles (
   user_id INT NOT NULL UNIQUE,
   bio TEXT NOT NULL,
   location VARCHAR(180) NOT NULL,
+  latitude DECIMAL(10,7),
+  longitude DECIMAL(10,7),
+  service_radius_km DECIMAL(6,2) NOT NULL DEFAULT 10.00,
   base_rate DECIMAL(10,2) NOT NULL DEFAULT 0,
   photo_url VARCHAR(255),
   is_verified TINYINT(1) NOT NULL DEFAULT 0,
   kyc_doc_url VARCHAR(255),
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_provider_geo (latitude, longitude),
   CONSTRAINT fk_provider_user
     FOREIGN KEY (user_id) REFERENCES users(id)
     ON DELETE CASCADE

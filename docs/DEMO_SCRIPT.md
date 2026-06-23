@@ -15,7 +15,7 @@ FixIt connects customers with verified local providers through a cross-platform 
 1. Login as `customer@fixit.test` / `password`.
 2. Open Services.
 3. Browse service categories and verified providers.
-4. Filter by category, location/search text, and max rate.
+4. Filter by category, location/search text, max rate, and nearby distance.
 5. Create a booking/job request.
 6. Open Bookings and show the job status timeline.
 7. Send a job message to the provider.
@@ -51,6 +51,7 @@ FixIt connects customers with verified local providers through a cross-platform 
 - PDO prepared statements protect against SQL injection.
 - Frontend and backend both validate inputs.
 - Provider KYC upload accepts only PDF/JPG/PNG and limits file size.
+- Provider browse can calculate nearby distance from customer latitude/longitude.
 - Job messages and status timeline are scoped by role, so unrelated users cannot inspect another job.
 - Admin category management uses real API-backed create, update, and soft-delete actions.
 - Admin dashboard cards, provider verification table, and category CRUD panel integrate Rejve's frontend mock into the real Vue/Slim/MySQL app.

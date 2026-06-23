@@ -29,6 +29,9 @@ id PK
 user_id FK -> users.id UNIQUE
 bio
 location
+latitude
+longitude
+service_radius_km
 base_rate
 photo_url
 is_verified

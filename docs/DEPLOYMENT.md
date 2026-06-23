@@ -2,6 +2,22 @@
 
 This file is for the final video proof requested in class.
 
+## Local Hosting Workspace
+
+Keep the source code in:
+
+```text
+C:\Users\ceyll\Documents\cpad final\Utm-project
+```
+
+Use this separate local folder only for deployment staging, copied build output, and tunnel notes:
+
+```text
+C:\Users\ceyll\Documents\cpad final\Utm-project-hosting
+```
+
+Do not copy WhatsApp exports, Telegram exports, e-learning captures, screenshots, or raw evidence data into the project repo or deployment bundle.
+
 ## Local Production Build
 
 ```bash

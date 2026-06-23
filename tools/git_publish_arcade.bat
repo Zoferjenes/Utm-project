@@ -3,8 +3,8 @@ setlocal EnableDelayedExpansion
 
 set "GIT_USER_NAME=exant9"
 set "GIT_USER_EMAIL=fcfgts@gmail.com"
-set "COMMIT_MESSAGE=Integrate Rejve admin frontend work"
-set "COMMIT_BODY=Applied Rejve's Member 1 web interface contribution into the real Vue/Slim/MySQL project: admin portal layout, dashboard cards, provider verification table, category CRUD flow, secure-login polish, and seed data examples while keeping raw chat/e-learning exports out of the repo."
+set "COMMIT_MESSAGE=Add provider distance filtering"
+set "COMMIT_BODY=Adds provider latitude/longitude/service radius fields, nearby distance calculation on provider browse, distance controls in the Vue services UI, provider profile geo inputs, seeded coordinates, and docs updates to cover the Problem 5 distance-filtering requirement."
 set "NEEDS_FORCE_PUSH=0"
 
 cd /d "%~dp0\.."

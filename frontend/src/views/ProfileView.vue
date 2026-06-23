@@ -12,6 +12,9 @@ const ok = ref('');
 const form = ref({
   bio: 'Reliable home service provider for UTM student areas.',
   location: 'Taman Universiti, Skudai',
+  latitude: 1.5339,
+  longitude: 103.6299,
+  service_radius_km: 10,
   base_rate: 50,
   photo_url: '/provider-ali.svg',
   kyc_doc_url: 'mock-kyc/provider-profile.pdf',
@@ -31,6 +34,9 @@ async function load() {
       form.value = {
         bio: profileRes.data.data.bio,
         location: profileRes.data.data.location,
+        latitude: profileRes.data.data.latitude !== null ? Number(profileRes.data.data.latitude) : '',
+        longitude: profileRes.data.data.longitude !== null ? Number(profileRes.data.data.longitude) : '',
+        service_radius_km: Number(profileRes.data.data.service_radius_km || 10),
         base_rate: Number(profileRes.data.data.base_rate),
         photo_url: profileRes.data.data.photo_url || '/provider-ali.svg',
         kyc_doc_url: profileRes.data.data.kyc_doc_url || 'mock-kyc/provider-profile.pdf',
@@ -107,6 +113,21 @@ onMounted(load);
         <label>Location</label>
         <input v-model="form.location" />
 
+        <div class="form-grid compact-grid">
+          <div>
+            <label>Latitude</label>
+            <input v-model.number="form.latitude" type="number" step="0.0001" />
+          </div>
+          <div>
+            <label>Longitude</label>
+            <input v-model.number="form.longitude" type="number" step="0.0001" />
+          </div>
+          <div>
+            <label>Service Radius (km)</label>
+            <input v-model.number="form.service_radius_km" type="number" min="1" />
+          </div>
+        </div>
+
         <label>Base Rate (RM)</label>
         <input v-model.number="form.base_rate" type="number" min="0" />
 
@@ -140,6 +161,7 @@ onMounted(load);
           <div>
             <strong>{{ auth.user?.name }}</strong>
             <p class="muted">{{ form.location }}</p>
+            <p class="muted">{{ form.latitude }}, {{ form.longitude }} - {{ form.service_radius_km }} km radius</p>
             <p>{{ form.bio }}</p>
             <span class="badge">RM{{ form.base_rate }}</span>
             <span class="badge warning">Admin controls public visibility</span>

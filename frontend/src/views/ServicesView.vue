@@ -7,6 +7,9 @@ const providers = ref([]);
 const q = ref('');
 const selectedCategory = ref('');
 const maxRate = ref('');
+const lat = ref(1.5339);
+const lng = ref(103.6299);
+const maxDistanceKm = ref('');
 const error = ref('');
 
 async function load() {
@@ -19,6 +22,9 @@ async function load() {
           q: q.value || undefined,
           category_id: selectedCategory.value || undefined,
           max_rate: maxRate.value || undefined,
+          lat: lat.value || undefined,
+          lng: lng.value || undefined,
+          max_distance_km: maxDistanceKm.value || undefined,
         },
       }),
     ]);
@@ -63,6 +69,18 @@ onMounted(load);
           <label>Max Rate</label>
           <input v-model.number="maxRate" type="number" min="0" placeholder="60" @keyup.enter="load" />
         </div>
+        <div>
+          <label>Your Latitude</label>
+          <input v-model.number="lat" type="number" step="0.0001" placeholder="1.5339" @keyup.enter="load" />
+        </div>
+        <div>
+          <label>Your Longitude</label>
+          <input v-model.number="lng" type="number" step="0.0001" placeholder="103.6299" @keyup.enter="load" />
+        </div>
+        <div>
+          <label>Max Distance (km)</label>
+          <input v-model.number="maxDistanceKm" type="number" min="0" placeholder="10" @keyup.enter="load" />
+        </div>
       </div>
       <p><button class="secondary" @click="load">Apply Filters</button></p>
     </div>
@@ -91,6 +109,9 @@ onMounted(load);
         <div class="row">
           <span class="badge">RM{{ provider.base_rate }}</span>
           <span class="badge warning">{{ provider.rating_avg || 0 }} rating</span>
+          <span v-if="provider.distance_km !== null && provider.distance_km !== undefined" class="badge">
+            {{ provider.distance_km }} km away
+          </span>
           <RouterLink to="/bookings"><button class="secondary compact">Book</button></RouterLink>
         </div>
       </article>

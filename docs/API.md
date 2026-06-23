@@ -107,8 +107,10 @@ Admin only. This soft-deactivates the category so existing job history remains i
 Optional query:
 
 ```text
-?category_id=1&q=skudai&max_rate=60
+?category_id=1&q=skudai&max_rate=60&lat=1.5339&lng=103.6299&max_distance_km=10
 ```
+
+When `lat` and `lng` are supplied, the API returns `distance_km` and sorts nearby providers first.
 
 ### Provider Detail
 
@@ -130,6 +132,9 @@ Provider only.
 {
   "bio": "Experienced home repair provider",
   "location": "Skudai, Johor",
+  "latitude": 1.5339,
+  "longitude": 103.6299,
+  "service_radius_km": 10,
   "base_rate": 50,
   "photo_url": "/provider-ali.svg",
   "kyc_doc_url": "mock-kyc/provider.pdf",
