@@ -12,6 +12,16 @@ $app->get('/', function (Request $request, Response $response) {
     ]);
 });
 
+$app->get('/health', function () use ($pdo) {
+    $pdo->query('SELECT 1');
+
+    return json_response([
+        'status' => 'ok',
+        'database' => 'connected',
+        'service' => 'Arcade FixIt API',
+    ]);
+});
+
 $app->post('/auth/register', function (Request $request, Response $response) use ($pdo) {
     $body = body_array($request);
     $errors = require_fields($body, ['name', 'email', 'password', 'role']);
