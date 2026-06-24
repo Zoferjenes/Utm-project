@@ -1,13 +1,13 @@
 USE fixit_arcade;
 
 INSERT INTO users (name, email, password_hash, role, phone) VALUES
-('Arcade Admin', 'admin@fixit.test', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.', 'admin', '010-0000000'),
-('Fiyandha Customer', 'customer@fixit.test', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.', 'customer', '011-1111111'),
-('Ali Plumber', 'provider@fixit.test', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.', 'provider', '012-2222222'),
-('Sara Cleaner', 'sara@fixit.test', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.', 'provider', '013-3333333'),
-('Omar Electrician', 'omar@fixit.test', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.', 'provider', '014-4444444'),
-('John Doe Plumbing Ltd', 'john@fixit.test', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.', 'provider', '015-5555555'),
-('Sarah Quick Sparks', 'sarah.spark@fixit.test', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.', 'provider', '016-6666666');
+('Arcade Admin', 'admin@fixit.test', '$2y$10$n9WILxvYcBGDvb8OmWYnv.I.3noRzMPc9mjvd5IfR.uE1BCyikT..', 'admin', '010-0000000'),
+('Fiyandha Customer', 'customer@fixit.test', '$2y$10$n9WILxvYcBGDvb8OmWYnv.I.3noRzMPc9mjvd5IfR.uE1BCyikT..', 'customer', '011-1111111'),
+('Ali Plumber', 'provider@fixit.test', '$2y$10$n9WILxvYcBGDvb8OmWYnv.I.3noRzMPc9mjvd5IfR.uE1BCyikT..', 'provider', '012-2222222'),
+('Sara Cleaner', 'sara@fixit.test', '$2y$10$n9WILxvYcBGDvb8OmWYnv.I.3noRzMPc9mjvd5IfR.uE1BCyikT..', 'provider', '013-3333333'),
+('Omar Electrician', 'omar@fixit.test', '$2y$10$n9WILxvYcBGDvb8OmWYnv.I.3noRzMPc9mjvd5IfR.uE1BCyikT..', 'provider', '014-4444444'),
+('John Doe Plumbing Ltd', 'john@fixit.test', '$2y$10$n9WILxvYcBGDvb8OmWYnv.I.3noRzMPc9mjvd5IfR.uE1BCyikT..', 'provider', '015-5555555'),
+('Sarah Quick Sparks', 'sarah.spark@fixit.test', '$2y$10$n9WILxvYcBGDvb8OmWYnv.I.3noRzMPc9mjvd5IfR.uE1BCyikT..', 'provider', '016-6666666');
 
 INSERT INTO service_categories (name, description, icon) VALUES
 ('Plumbing & Repair', 'Leak repairs, toilet repair, pipe installation, water heater support.', 'pipe'),
