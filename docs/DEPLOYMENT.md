@@ -68,8 +68,6 @@ build command: npm run build
 publish directory: dist
 ```
 
-The root `netlify.toml` stores the publish path as `frontend/dist` because the file itself lives at the repository root.
-
 Set this Netlify environment variable:
 
 ```text
