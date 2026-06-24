@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Arcade FixIt</string>
+    <string name="title_activity_main">Arcade FixIt</string>
+    <string name="package_name">my.utm.arcade.fixit</string>
+    <string name="custom_url_scheme">my.utm.arcade.fixit</string>
+</resources>
