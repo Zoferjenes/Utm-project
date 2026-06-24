@@ -1,0 +1,29 @@
+.git
+.github
+.agents
+_scan_unpacked
+
+**/.env
+**/.env.*
+!**/.env.example
+!frontend/.env.production.example
+
+backend/vendor
+backend/storage/*.log
+frontend/node_modules
+frontend/dist
+frontend/*.log
+
+ChatExport*
+TEELGRAM DATA
+WHATSAPP DATA
+elearning 8idf2903fr8r2
+google photos 9302ru2093r
+web scrapped
+*.zip
+*.pdf
+*.pptx
+*.docx
+*.mp4
+*.mov
+codex-clipboard-*

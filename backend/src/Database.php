@@ -9,11 +9,11 @@ final class Database
 {
     public static function connect(array $env): PDO
     {
-        $host = $env['DB_HOST'] ?? '127.0.0.1';
-        $port = $env['DB_PORT'] ?? '3306';
-        $name = $env['DB_NAME'] ?? 'fixit_arcade';
-        $user = $env['DB_USER'] ?? 'root';
-        $pass = $env['DB_PASS'] ?? '';
+        $host = self::first($env, ['DB_HOST', 'MYSQLHOST'], '127.0.0.1');
+        $port = self::first($env, ['DB_PORT', 'MYSQLPORT'], '3306');
+        $name = self::first($env, ['DB_NAME', 'MYSQLDATABASE'], 'fixit_arcade');
+        $user = self::first($env, ['DB_USER', 'MYSQLUSER'], 'root');
+        $pass = self::first($env, ['DB_PASS', 'MYSQLPASSWORD'], '');
 
         $dsn = "mysql:host={$host};port={$port};dbname={$name};charset=utf8mb4";
 
@@ -23,5 +23,15 @@ final class Database
             PDO::ATTR_EMULATE_PREPARES => false,
         ]);
     }
-}
 
+    private static function first(array $env, array $keys, string $default): string
+    {
+        foreach ($keys as $key) {
+            if (isset($env[$key]) && trim((string)$env[$key]) !== '') {
+                return trim((string)$env[$key]);
+            }
+        }
+
+        return $default;
+    }
+}

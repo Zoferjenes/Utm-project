@@ -1,117 +1,139 @@
-# Deployment and Capacitor Proof
+# Production Deployment: Railway + Netlify
 
-This file is for the final video proof requested in class.
+Arcade FixIt is deployed as a monorepo:
 
-## Local Hosting Workspace
+- Railway: PHP Slim API and MySQL database
+- Netlify: Vue/Vite frontend
 
-Keep the source code in:
+Do not deploy course exports, WhatsApp/Telegram data, screenshots, ZIP archives, local `.env` files, `node_modules`, `vendor`, or `dist`.
 
-```text
-C:\Users\ceyll\Documents\cpad final\Utm-project
-```
+## Backend: Railway
 
-Use this separate local folder only for deployment staging, copied build output, and tunnel notes:
+Railway uses the root `Dockerfile` and `railway.json`.
 
-```text
-C:\Users\ceyll\Documents\cpad final\Utm-project-hosting
-```
-
-Do not copy WhatsApp exports, Telegram exports, e-learning captures, screenshots, or raw evidence data into the project repo or deployment bundle.
-
-## Local Production Build
-
-```bash
-cd frontend
-npm install
-npm run build
-npm run preview
-```
-
-Preview URL:
-
-```text
-http://localhost:4173
-```
-
-## Backend Deployment Notes
-
-The Slim backend needs PHP 8.1+, Composer, MySQL, and a web root pointing to:
-
-```text
-backend/public
-```
-
-Production checklist:
+Required Railway variables for the API service:
 
 ```text
 APP_ENV=production
 APP_DEBUG=false
-DB_HOST=<production-mysql-host>
-DB_NAME=<production-database>
-DB_USER=<production-user>
-DB_PASS=<production-password>
-JWT_SECRET=<long-random-secret>
-CORS_ALLOWED_ORIGINS=<production-frontend-url>
+DB_HOST=${{MySQL.MYSQLHOST}}
+DB_PORT=${{MySQL.MYSQLPORT}}
+DB_NAME=${{MySQL.MYSQLDATABASE}}
+DB_USER=${{MySQL.MYSQLUSER}}
+DB_PASS=${{MySQL.MYSQLPASSWORD}}
+JWT_SECRET=<strong-random-secret>
+JWT_ISSUER=arcade-fixit
+JWT_TTL=86400
+CORS_ALLOWED_ORIGINS=https://your-netlify-site.netlify.app
 ```
 
-Run:
+The backend also supports Railway's native MySQL variable names as fallbacks:
+
+```text
+MYSQLHOST
+MYSQLPORT
+MYSQLDATABASE
+MYSQLUSER
+MYSQLPASSWORD
+```
+
+On container startup, `backend/bin/init-database.php` checks for the required FixIt tables. It imports `database/production_schema.sql` and `database/production_seed.sql` only when none of the required tables exist. Existing initialized databases are skipped.
+
+Public endpoints to verify:
+
+```text
+GET /
+GET /health
+GET /categories
+POST /auth/login
+```
+
+Expected `/health` shape:
+
+```json
+{
+  "status": "ok",
+  "database": "connected",
+  "service": "Arcade FixIt API"
+}
+```
+
+## Frontend: Netlify
+
+Netlify uses `netlify.toml`:
+
+```text
+base directory: frontend
+build command: npm run build
+publish directory: dist
+```
+
+Set this Netlify environment variable:
+
+```text
+VITE_API_BASE_URL=https://your-railway-api-domain.up.railway.app
+```
+
+`frontend/public/_redirects` contains the SPA fallback:
+
+```text
+/* /index.html 200
+```
+
+This keeps `/login`, `/services`, `/bookings`, `/admin`, and `/profile` working after refresh.
+
+## Local Verification Commands
+
+Backend:
 
 ```bash
 cd backend
-composer install --no-dev --optimize-autoloader
+composer install
+php -S 127.0.0.1:8000 -t public public/index.php
 ```
 
-Import:
-
-```bash
-mysql -u <user> -p < database/schema.sql
-mysql -u <user> -p < database/seed.sql
-```
-
-## Frontend Deployment Notes
-
-Set the production API URL:
-
-```text
-VITE_API_BASE_URL=https://your-api-domain.example
-```
-
-Build:
+Frontend:
 
 ```bash
 cd frontend
+npm ci
 npm run build
+npm run dev -- --host 127.0.0.1 --port 5173
 ```
 
-Deploy the `frontend/dist` folder to Netlify, Vercel, Firebase Hosting, or any static host.
+API checks:
+
+```bash
+curl http://127.0.0.1:8000/health
+curl http://127.0.0.1:8000/categories
+```
+
+Demo accounts all use password `password`:
+
+```text
+admin@fixit.test
+customer@fixit.test
+provider@fixit.test
+```
 
 ## Capacitor Android Proof
 
+After the public Railway API and Netlify frontend pass verification, build with the production API URL:
+
 ```bash
 cd frontend
-npm install
 npm run build
 npx cap add android
 npx cap sync android
 npx cap open android
 ```
 
-In Android Studio, show:
+Keep `frontend/capacitor.config.json` using:
 
-```text
-android app project opens
-app name: Arcade FixIt
-package id: my.utm.arcade.fixit
-web assets loaded from dist
+```json
+{
+  "webDir": "dist"
+}
 ```
 
-## Suggested Video Order
-
-1. Open production frontend URL.
-2. Login as customer and create a booking.
-3. Login as provider and move status to completed.
-4. Confirm final cost and submit review as customer.
-5. Show backend API JSON response.
-6. Show `npm run build` success.
-7. Show `npx cap sync android` success.
-8. Open Android project or emulator.
+Do not point Capacitor to the Netlify website as a remote server; package the compiled Vue app from `dist`.

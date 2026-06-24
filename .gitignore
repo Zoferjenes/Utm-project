@@ -23,9 +23,11 @@ codex-clipboard-*
 .env
 .env.*
 !.env.example
+!frontend/.env.production.example
 node_modules/
 vendor/
 dist/
 build/
 coverage/
 *.log
+.netlify/
