@@ -218,13 +218,13 @@ onMounted(load);
                       </td>
                       <td>{{ provider.categories || provider.bio }}</td>
                       <td><span class="badge warning">Pending Review</span></td>
-                      <td>
-                    <div v-if="Number(provider.is_verified) == 1" class="row">
-                      <button class="compact" @click="setVerified(provider, true)">Approve</button>
-                      <button class="danger compact" @click="setVerified(provider, false)">Reject</button>
-                    </div>
-                    <span v-else class="badge success">No action needed</span>
-                  </td>
+                                            <td>
+                        <template v-if="Number(provider.is_verified) !== 1">
+                          <button class="compact" @click="setVerified(provider, true)">Approve</button>
+                          <button class="danger compact" @click="setVerified(provider, false)">Reject</button>
+                        </template>
+                        <span v-else class="badge success">No action needed</span>
+                      </td>
                     </tr>
                     <tr v-if="!pendingProviders.length">
                       <td colspan="4" class="empty-cell">All service providers verified.</td>
@@ -318,11 +318,11 @@ onMounted(load);
                       {{ provider.is_verified == 1 ? 'Verified' : 'Pending' }}
                     </span>
                   </td>
-                  <td>
-                    <div v-if="Number(provider.is_verified) !== 1" class="row">
+                                    <td>
+                    <template v-if="Number(provider.is_verified) !== 1">
                       <button class="compact" @click="setVerified(provider, true)">Approve</button>
                       <button class="danger compact" @click="setVerified(provider, false)">Reject</button>
-                    </div>
+                    </template>
                     <span v-else class="badge success">No action needed</span>
                   </td>
                 </tr>
