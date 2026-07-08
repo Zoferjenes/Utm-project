@@ -219,11 +219,12 @@ onMounted(load);
                       <td>{{ provider.categories || provider.bio }}</td>
                       <td><span class="badge warning">Pending Review</span></td>
                       <td>
-                        <div class="row">
-                          <button class="compact" @click="setVerified(provider, true)">Approve</button>
-                          <button class="danger compact" @click="setVerified(provider, false)">Reject</button>
-                        </div>
-                      </td>
+                    <div v-if="Number(provider.is_verified) == 1" class="row">
+                      <button class="compact" @click="setVerified(provider, true)">Approve</button>
+                      <button class="danger compact" @click="setVerified(provider, false)">Reject</button>
+                    </div>
+                    <span v-else class="badge success">No action needed</span>
+                  </td>
                     </tr>
                     <tr v-if="!pendingProviders.length">
                       <td colspan="4" class="empty-cell">All service providers verified.</td>
