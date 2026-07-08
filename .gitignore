@@ -35,3 +35,13 @@ coverage/
 *.log
 .netlify/
 .railway/
+node_modules/
+vendor/
+.env
+.env.*
+*.log
+dist/
+.vite/
+.gradle/
+build/
+.DS_Store
